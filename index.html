@@ -119,7 +119,8 @@
       }
       
       #prompt,
-      .printinfo {
+      .printinfo,
+      .error {
         display:none;
       }
       
@@ -154,6 +155,11 @@
       <div id="intro">
         <h1>Search for a location to get real-time arrival info:</h1>
         <input type="text" id="address" value="" placeholder="Address here - eg 'Woodward and Warren'"> <a href="#" id="submit">Find nearby stops</a>
+      </div>
+      
+      <div class="error">
+        <h3>Sorry, we weren't able to show info for that location.</h3> 
+        <p>We're looking into the problem</p>
       </div>
       
       <div id="map"></div>
@@ -223,6 +229,8 @@
       }
     
       function codeAddress() {
+        $(".error").hide('slow');
+        
         var address = document.getElementById('address').value;
         address += " Detroit MI";
         
@@ -291,10 +299,11 @@
               map.fitBounds (bounds);
             });
             
-            // Get the stops nearby.
+            // Show the info.
+            $("#prompt").show('slow');
             
           } else {
-            console.log('Geocode was not successful for the following reason: ' + status);
+            $("#error").show('slow');
           }
         });
       }
@@ -305,7 +314,6 @@
         $("#submit").click(function(e) {
           e.preventDefault();
           $("#stopinfo").hide('slow');
-          $("#prompt").show('slow');
           codeAddress();
         });
       });
