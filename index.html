@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <title>Find your Stop</title>
-    <style type="text/css" media="screen">
+    <style type="text/css" media="all">
       body { 
         color:#333;
         font-family:Helvetica, sans-serif;
@@ -18,7 +18,7 @@
       }
       
       #map {
-        height:300px;
+        height:225px;
         margin-top:30px;
         margin-bottom:50px;
       }
@@ -45,6 +45,19 @@
       
       h3 {
         font-size:60px;
+      }
+      
+      .moreinfo {
+        margin-top:1em;
+      }
+      
+      .moreinfo, ul {
+        font-size:40px;
+      }
+      
+      ul {
+        font-weight:bold;
+        margin-top:0;
       }
       
       #address {
@@ -102,11 +115,32 @@
       
       .disclaimer {
         color:#666;
+        margin-bottom:0;
       }
       
-      #prompt {
+      #prompt,
+      .printinfo {
         display:none;
       }
+      
+      #logos {
+        border-top:4px solid #ddd;
+        margin-top:20px;
+        padding-top:20px;
+        text-align:center;
+      }
+      #logos img {
+        margin-right:50px;
+      }
+    </style>
+    <style type="text/css" media="print">
+    #map,
+    #intro {
+      display:none;
+    }
+    .printinfo {
+      display:block;
+    }
     </style>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.0/jquery.min.js"></script>
     <script src="https://maps.googleapis.com/maps/api/js?sensor=false"></script>
@@ -117,25 +151,31 @@
 
 <body>
     <div id="container">
+      <div id="intro">
         <h1>Search for a location to get real-time arrival info:</h1>
         <input type="text" id="address" value="" placeholder="Address here - eg 'Woodward and Warren'"> <a href="#" id="submit">Find nearby stops</a>
-        <div id="map"></div>
-        
-        <div id="prompt">
-          <h3>Select a stop on the map above to see details.</h3>
-        </div>
-        
-        <div id="stopinfo">
-        </div>
-        
-        <div id="logos">
-        </div>
+      </div>
       
+      <div id="map"></div>
+      
+      <div id="prompt">
+        <h3>Select a stop on the map above to see details.</h3>
+      </div>
+      
+      <div id="stopinfo">
+      </div>
+      
+      <div id="logos">
+        <a href="http://www.ci.detroit.mi.us/Departments/DetroitDepartmentofTransportation/tabid/80/default.aspx"><img src="img/ddot.png" alt="Detroit Department of Transportation (DDOT)"></a>
+        <a href="http://codeforamerica.org/"><img src="img/cfa.gif" alt="Code for America"></a>  
+      </div>
     </div>
     
     <script>
       var geocoder;
       var map;
+      var infowindow = new google.maps.InfoWindow();      
+      
       function initialize() {
         geocoder = new google.maps.Geocoder();
         var latlng = new google.maps.LatLng(42.353013,-83.06488);
@@ -145,7 +185,11 @@
           mapTypeId: google.maps.MapTypeId.TERRAIN
         };
         map = new google.maps.Map(document.getElementById('map'), mapOptions);
-      }
+      };
+      
+      String.prototype.titleCase = function() { 
+         return this.toLowerCase().replace(/^.|\s\S/g, function(a) { return a.toUpperCase(); });
+      };
       
       function getRoutes(routeId, callback) {
         var stopData = $.ajax({
@@ -154,12 +198,11 @@
         });
         
         stopData.done(function(data) {        
-          callback(null, data.data.entry.shortName + " " + data.data.entry.longName)
+          callback(null, data.data.entry.shortName + " " + data.data.entry.longName);
         });
       };
       
-      function showStopDeets(stopId, routes){
-        
+      function showStopDeets(stopId, routeString, stopName, routes){
         var stopId = stopId.slice(5);
         console.log(stopId);
         console.log(routes);
@@ -168,7 +211,9 @@
         
         var textTo = _.template($("#stop-template").html(), {
           stopId: stopId,
-          routes: routes
+          routeString: routeString,
+          routes: routes,
+          stopName: stopName
         });
         
         $("#stopinfo").html(textTo);
@@ -202,6 +247,7 @@
                 
                 // Get the stopId
                 console.log(stop);
+                var stopName = stop.name.titleCase();
                 var stopId = stop.id;
                                 
                 // Mark all the stops on the map            
@@ -214,18 +260,30 @@
                 
                 async.map(stop.routeIds, getRoutes, function(e, results) {
                   
+                  for (var i=0; i < results.length; i++) {
+                    results[i] = results[i].titleCase();
+                  };
+                  
+                  // Put all the route names in one string
                   var routes = _.reduce(results, function(memo, route) {
-                    return memo + route + ", ";
+                    return memo + route.titleCase() + ", ";
                   }, "");
                   
                   
-                  var infowindow = new google.maps.InfoWindow({
-                      content: routes.slice(0, -1)
-                  });
+                  // Add an event handler for the marker
                   google.maps.event.addListener(marker, 'click', function() {
+                    console.log(infowindow);
+                    infowindow.close();
+                    
+                    // Create an infowindow with the route info
+                    infowindow = new google.maps.InfoWindow({
+                        content: routes.slice(0, -1)
+                    });
+                    
                     infowindow.open(map, marker);
-                    showStopDeets(stopId, routes);
+                    showStopDeets(stopId, routes, stopName, results);
                   });
+                  
                 });
                               
                   
@@ -255,6 +313,7 @@
     </script>
     
     <script type="text/template" id="stop-template">
+      <h3>For the next buses at <%= stopName %>:
       <div class="container">
         <div id="sms">
           <span class="text">text</span> 
@@ -262,15 +321,22 @@
         </div>
         <div id="stop">
           <span class="to">to</span> 
-          <h2>00000</h2>
+          <h2>50464</h2>
         </div>
       </div>
     
-      <h3>For real-time info on routes <%= routes %></h3>
-      <p>Or, text your location to 00000 to find info for the nearest routes</p>
-      <p class="disclaimer">This is a free service, but your carrier's standard 
-        text message fees will apply.</p>
-        
+      <h3 class="moreinfo">You&apos;ll get real-time info for:</h3>
+      <ul>
+        <% _.each(routes, function(route) {  %>
+          <li><%= route %></li>
+        <% }); %>
+      </ul>
+       
+      <p>Or, simply text your location to 50464 to find info for the nearest routes</p>
+      <p class="disclaimer">This is a free service, but your carrier&apos;s standard 
+        text message fees will apply.</p>    
+      <p class="disclaimer printinfo">Print a poster like this for your stop at http://ddotsign.org</p>    
+      
     </script>
 </body>
 </html>
