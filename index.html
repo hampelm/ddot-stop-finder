@@ -320,6 +320,15 @@
       // Start everything:      
       $(function() {
         initialize();
+        
+        $("#address").keypress(function(e) {
+          if (e.keyCode == 13) {
+            e.preventDefault();
+            $("#stopinfo").hide('slow');
+            codeAddress();
+          }
+        });
+        
         $("#submit").click(function(e) {
           e.preventDefault();
           $("#stopinfo").hide('slow');
