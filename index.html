@@ -119,11 +119,10 @@
       
       .disclaimer {
         color:#666;
-        margin-bottom:0;
       }
       
       #prompt,
-      .printinfo,
+      .printshow,
       .error {
         display:none;
       }
@@ -133,17 +132,22 @@
         margin-top:20px;
         padding-top:20px;
         text-align:center;
+        margin-bottom:30px;
       }
       #logos img {
         margin-right:50px;
       }
+      #logos img+img {
+        margin-right:0;
+      }
     </style>
     <style type="text/css" media="print">
     #map,
-    #intro {
+    #intro,
+    .printhide {
       display:none;
     }
-    .printinfo {
+    .printshow {
       display:block;
     }
     </style>
@@ -345,10 +349,13 @@
         <% }); %>
       </ul>
        
-      <p>Or, simply text your location to 50464 to find info for the nearest routes</p>
-      <p class="disclaimer">This is a free service, but your carrier&apos;s standard 
-        text message fees will apply.</p>    
-      <p class="disclaimer printinfo">Print a poster like this for your stop at http://ddotsign.org</p>    
+      <p>Or, simply text your location to 50464 to find info for the nearest routes.</p>
+      <p class="disclaimer">This is a free service, but your carrier may charge standard 
+        text message fees.</p>
+      <p class="disclaimer printhide">This page is a printable poster! 
+        Help out riders by printing a copy for your stop.</p>
+      <p class="disclaimer printshow">Print a poster like this for your stop 
+        at http://ddotsign.org.</p>    
       
     </script>
 </body>
