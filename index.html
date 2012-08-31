@@ -140,6 +140,10 @@
       #logos img+img {
         margin-right:0;
       }
+      
+      img a, a img { 
+        border:0px none;
+      }
     </style>
     <style type="text/css" media="print">
     #map,
@@ -212,6 +216,7 @@
         });
         
         stopData.done(function(data) {        
+          console.log(data.data);
           callback(null, data.data.entry.shortName + " " + data.data.entry.longName);
         });
       };
