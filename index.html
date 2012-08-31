@@ -279,33 +279,73 @@
                     map: map
                 });
                 
-                async.map(stop.routeIds, getRoutes, function(e, results) {
+                var scheduleData = $.ajax({
+                  url: "http://ddot-beta.herokuapp.com/api/api/where/schedule-for-stop/" + stopId + ".json?key=BETA",
+                  dataType: 'jsonp'
+                });
+                
+                
+                var headsigns;
+                scheduleData.done(function(schedule) {
+                  var stopRouteSchedules = schedule.data.entry.stopRouteSchedules;
+                  console.log(stopRouteSchedules);
                   
-                  for (var i=0; i < results.length; i++) {
-                    results[i] = results[i].titleCase();
-                  };
+                  headsigns = _.map(stopRouteSchedules, function(SRS){ 
+                    var headsign = SRS.stopRouteDirectionSchedules[0].tripHeadsign;
+                    headsign = headsign.titleCase();
+                    return headsign; 
+                  });
+                  
+                  console.log(headsigns);
                   
                   // Put all the route names in one string
-                  var routes = _.reduce(results, function(memo, route) {
-                    return memo + route.titleCase() + ", ";
+                  var routes = _.reduce(headsigns, function(memo, headsign) {
+                    console.log(headsign);
+                    return memo + headsign + ", ";
                   }, "");
-                  
-                  
+
+                  console.log(routes);
+                  console.log(headsigns);
+
                   // Add an event handler for the marker
                   google.maps.event.addListener(marker, 'click', function() {
                     console.log(infowindow);
                     infowindow.close();
-                    
+                    console.log(routes);
+
                     // Create an infowindow with the route info
                     infowindow = new google.maps.InfoWindow({
                         content: routes.slice(0, -1)
                     });
-                    
+
                     infowindow.open(map, marker);
-                    showStopDeets(stopId, routes, stopName, results);
+                    showStopDeets(stopId, headsigns, stopName, headsigns);
                   });
                   
+                  
+                  
+                  return headsigns;
                 });
+                
+                
+                
+
+                
+                
+                // async.map(stop.routeIds, getRoutes, function(e, results) {
+                //   
+                //   for (var i=0; i < results.length; i++) {
+                //     results[i] = results[i].titleCase();
+                //   };
+                //   
+                //   
+                //   
+                //   
+                //   
+                //   
+                //   
+                //   
+                // });
                               
                   
               });
